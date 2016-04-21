@@ -51,7 +51,6 @@ def show_melon(melon_id):
     """
 
     melon = melons.get_by_id(melon_id)
-    print melon
     return render_template("melon_details.html",
                            display_melon=melon)
 
@@ -91,14 +90,26 @@ def shopping_cart():
     #   - keep track of the total amt of the entire order
     # - hand to the template the total order cost and the list of melon types
 
+    melon_cart = {}
+
     if session["cart"]:
-        for ids in session["cart"]:
-            melon = melons.get_by_id(ids)
-            print melon
 
+        for ids in session["cart"]: #Referencing value list at key "cart"
+            melon_data = melons.get_by_id(ids) #string with melon info - <Melon: %s, %s, %s>
+            
+            name = melon_data.common_name
+            price = float(melon_data.price)
+            qty = int(session["cart"].count(ids))
+            total = qty * price
 
+            melon_cart[name] = melon_cart.get(name, []) + [price, qty, total]
+
+    # else:
+
+            #Still need to get price/total to show two decimal places
+            
     return render_template("cart.html",
-                            melon=melon)
+                            melons=melon_cart)
 
 
 @app.route("/login", methods=["GET"])
