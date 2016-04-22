@@ -72,7 +72,7 @@ def add_to_cart(id):
     session.setdefault("cart", []).append(id)
     flash("You have successfully added this to cart")
 
-    return render_template("cart.html")
+    return redirect('/cart')
 
 
 @app.route("/cart")
@@ -90,26 +90,37 @@ def shopping_cart():
     #   - keep track of the total amt of the entire order
     # - hand to the template the total order cost and the list of melon types
 
-    melon_cart = {}
+    if "cart" in session:
+        melon_cart = {}
 
-    if session["cart"]:
+        for melon_id in session["cart"]: #Referencing value list at key "cart"
+            melon_info = {}    
 
-        for ids in session["cart"]: #Referencing value list at key "cart"
-            melon_data = melons.get_by_id(ids) #string with melon info - <Melon: %s, %s, %s>
-            
+            melon_data = melons.get_by_id(melon_id) #string with melon info - <Melon: %s, %s, %s>
+       
+
+            id_num = melon_data.id
             name = melon_data.common_name
             price = float(melon_data.price)
-            qty = int(session["cart"].count(ids))
+            qty = int(session["cart"].count(melon_id))
             total = qty * price
 
-            melon_cart[name] = melon_cart.get(name, []) + [price, qty, total]
+            melon_info[name] = melon_info.get(name, [price, qty, total])
 
-    # else:
+            melon_cart[id_num] = melon_cart.get(id_num, melon_info)  
+    
+        grand_total = 0
 
-            #Still need to get price/total to show two decimal places
+        for melon in melon_cart.values():
+            for name, info in melon.items():
+                grand_total += info[2]
+    else: 
+        melon_cart = None
+        total = None
             
     return render_template("cart.html",
-                            melons=melon_cart)
+                            melons=melon_cart,
+                            total=grand_total)
 
 
 @app.route("/login", methods=["GET"])
